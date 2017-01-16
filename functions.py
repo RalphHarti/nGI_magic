@@ -67,3 +67,6 @@ def read_data(path_im,path_ob,path_dc):
         print('!!!WARNING!!! NUMBERS OF PROJECTIONS AND OPEN BEAMS ARE NOT THE SAME')
         
     return(stack_im_ar,stack_ob_ar,im_a1)
+
+def norm():
+    return
