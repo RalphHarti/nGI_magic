@@ -22,3 +22,4 @@ im,ob=normalization(im,ob,*norm_param)
 #im, ob = binning(im,ob,bin_fac)
 #ti, dpci, dfi, vis_map = createIm(im,ob)
 #saveIm(ti, dpci, dfi, vis_map,'name','folder',overWrite=True)
+
