@@ -193,21 +193,16 @@ def oscillation(stack_im,stack_ob,xROI=xROI,yROI=yROI,thickROI=thickROI,heightRO
     gs = gridspec.GridSpec(1,2,width_ratios=[2,1],height_ratios=[1,1]) 
     ax = plt.subplot(gs[0])
     ax2 = plt.subplot(gs[1])
-#            fig,(ax,ax2) = plt.subplots(1,2,sharex=False,sharey=False,figsize=(15,10))
     ax.imshow(im,vmin=vmin, vmax=vmax,interpolation='nearest',cmap=cmap)
     rectNorm = patches.Rectangle((xROI,yROI),thickROI,heightROI,linewidth=1,edgecolor='m',facecolor='none')
     ax.add_patch(rectNorm)
     ax.set_title(titleOne)
-
     
-     
-
     ax2.plot(range(1,len(stack_im_ar)+1),stack_im_ar,color='g',label='data')
     ax2.scatter(range(1,len(stack_im_ar)+1),stack_im_ar,marker='*',color='g')
     ax2.plot(range(1,len(stack_ob_ar)+1),stack_ob_ar,color='b',label='ob')
     ax2.scatter(range(1,len(stack_ob_ar)+1),stack_ob_ar,color='b')
     ax2.legend(loc=1, shadow=True)
-
     ax2.set_title(titleTwo)
     ax2.set_xlim((0,len(stack_ob_ar)+2))
 #    ax2.set_ylim([yROI+heightROI,yROI])
@@ -270,14 +265,10 @@ def saveIm(ti,dpci,dfi,vis_map,name='name',folder='folder',overWrite=False):
     if not os.path.exists('data/'+folder):
         makedirs('data/'+folder) 
         print('files saved in folder: ','data/'+folder)
-
-    pyfits.writeto('data/'+folder+'/ti_'+str(name)+'.fits',ti,clobber=overWrite)
-    pyfits.writeto('data/'+folder+'/dpci_'+str(name)+'.fits',dpci,clobber=overWrite)
-    pyfits.writeto('data/'+folder+'/dfi_'+str(name)+'.fits',dfi,clobber=overWrite)
-    pyfits.writeto('data/'+folder+'/visi_'+str(name)+'.fits',vis_map,clobber=overWrite)
-    
-#    fits.writeto('out.fits', ti, 96)
-    return
+    fits.writeto('data/'+folder+'/ti_'+str(name)+'.fits',ti,clobber=overWrite)
+    fits.writeto('data/'+folder+'/dpci_'+str(name)+'.fits',dpci,clobber=overWrite)
+    fits.writeto('data/'+folder+'/dfi_'+str(name)+'.fits',dfi,clobber=overWrite)
+    fits.writeto('data/'+folder+'/visi_'+str(name)+'.fits',vis_map,clobber=overWrite)
     
 def binning(stack_im,stack_ob,bin_fac=None):
     
