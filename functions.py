@@ -12,7 +12,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib import gridspec
-import pyfits
 from os import makedirs
 from astropy.io import fits 
 import h5py
@@ -270,13 +269,10 @@ def saveIm(ti,dpci,dfi,vis_map,name='name',folder='folder',overWrite=False):
     if not os.path.exists('data/'+folder):
         makedirs('data/'+folder) 
         print('files saved in folder: ','data/'+folder)
-
-    pyfits.writeto('data/'+folder+'/ti_'+str(name)+'.fits',ti,clobber=overWrite)
-    pyfits.writeto('data/'+folder+'/dpci_'+str(name)+'.fits',dpci,clobber=overWrite)
-    pyfits.writeto('data/'+folder+'/dfi_'+str(name)+'.fits',dfi,clobber=overWrite)
-    pyfits.writeto('data/'+folder+'/visi_'+str(name)+'.fits',vis_map,clobber=overWrite)
-    
-#    fits.writeto('out.fits', ti, 96)
+    fits.writeto('data/'+folder+'/ti_'+str(name)+'.fits',ti,clobber=overWrite)
+    fits.writeto('data/'+folder+'/dpci_'+str(name)+'.fits',dpci,clobber=overWrite)
+    fits.writeto('data/'+folder+'/dfi_'+str(name)+'.fits',dfi,clobber=overWrite)
+    fits.writeto('data/'+folder+'/visi_'+str(name)+'.fits',vis_map,clobber=overWrite)
     return
     
 def binning(stack_im,stack_ob,bin_fac=None):
