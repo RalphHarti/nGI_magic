@@ -16,7 +16,7 @@ from os import makedirs
 from astropy.io import fits 
 import h5py
 from pathlib import Path
-from scipy.signal import medfilt
+from scipy.signal import medfilt,wiener
 
 
 
@@ -101,11 +101,13 @@ def read_data(path_im,path_ob,path_dc):
 
 xROI,yROI,thickROI,heightROI=10,10,35,35 #parameter for roi
    
-def roi(im,xROI,yROI,thickROI,heightROI,show=False,titleOne='Original image with selected ROI',titleTwo='ROI'):
+def roi(im,xROI,yROI,thickROI,heightROI,show=False,titleOne='Original image with selected ROI',titleTwo='ROI',shape=False):
     """
     roi() takes a SINGLE image and crops it 
     (xROI,yROI) is the upper left-hand corner of the cropping rectangle 
     """
+    if shape:
+        print(im.shape)
     if (0<=xROI<=im.shape[0] and 0<=xROI+thickROI<=im.shape[0] and 0<=yROI<=im.shape[1] and 0<=yROI+heightROI<=im.shape[1]):
         imROI = im[yROI:yROI+heightROI,xROI:xROI+thickROI]
         if show:
@@ -137,7 +139,7 @@ def cropped(stack_im,stack_ob,xROI=xROI,yROI=yROI,thickROI=thickROI,heightROI=he
     cropped() takes a stack of data,ob and dark currenr and crops them 
     (xROI,yROI) is the upper left-hand corner of the cropping rectangle 
     """
-    stack_im_ar = [roi(im=stack_im[0],xROI=xROI,yROI=yROI,thickROI=thickROI,heightROI=heightROI,show=True,titleTwo='Cropped region')]
+    stack_im_ar = [roi(im=stack_im[0],xROI=xROI,yROI=yROI,thickROI=thickROI,heightROI=heightROI,show=True,titleTwo='Cropped region',shape=True)]
     for i in stack_im[1:]:
         stack_im_ar.append(roi(im=i,xROI=xROI,yROI=yROI,thickROI=thickROI,heightROI=heightROI,show=False))
 #    stack_im_ar = [roi(im=i,xROI=xROI,yROI=yROI,thickROI=thickROI,heightROI=heightROI,show=True) for i in stack_im]
@@ -170,10 +172,20 @@ def oscillation(stack_im,stack_ob,xROI=xROI,yROI=yROI,thickROI=thickROI,heightRO
     """
     titleOne='Area for oscillation'
     titleTwo='Oscillation plot'
-    area = abs(thickROI*heightROI)
-    stack_ob_ar = [l[yROI:yROI+heightROI+1,xROI:xROI+thickROI+1].sum()/area for l in stack_ob] 
-    stack_im_ar = [l[yROI:yROI+heightROI+1,xROI:xROI+thickROI+1].sum()/area for l in stack_im] 
+#    area = abs(thickROI*heightROI)
+#    stack_ob_ar = [l[yROI:yROI+heightROI,xROI:xROI+thickROI].sum()/area for l in stack_ob] 
+#    print('stack_ob_ar:',stack_ob_ar)
+
+    stack_ob_ar = [l[yROI:yROI+heightROI,xROI:xROI+thickROI].mean() for l in stack_ob] 
+
+#    stack_im_ar = [l[yROI:yROI+heightROI,xROI:xROI+thickROI].sum()/area for l in stack_im] 
+    stack_im_ar = [l[yROI:yROI+heightROI,xROI:xROI+thickROI].mean() for l in stack_im] 
+
+#    print('stack_ob_ar:',stack_ob_ar)
+#    print( 'stack_im_ar',stack_im_ar)
     if repeatedPeriod:
+#        stack_ob_ar += stack_ob_ar[1:]  #without step
+#        stack_im_ar += stack_im_ar[1:]  #without step
         stack_ob_ar += stack_ob_ar
         stack_im_ar += stack_im_ar
         titleTwo += ' repetead period'
@@ -200,6 +212,7 @@ def oscillation(stack_im,stack_ob,xROI=xROI,yROI=yROI,thickROI=thickROI,heightRO
     ax2.legend(loc=1, shadow=True)
     ax2.set_title(titleTwo)
     ax2.set_xlim((0,len(stack_ob_ar)+2))
+    ax2.grid(True)
     plt.tight_layout()
     plt.show()
     if folder:
@@ -352,25 +365,30 @@ def binning(stack_im,stack_ob,bin_fac=None):
     return stack_im_bin, stack_ob_bin
 
 
-def med_filt_z(stack_im,stack_ob,filter_size=1):
+def win_filt_z(stack_im,stack_ob):
     """
-    med_filt_z()
-    A median filter that does not filter the actual 2 image dimensions, but takes the 3D array and filters in direction of the sine oscillation
+    med_filt_z(): Only use for very low DFI values and test before use to see if the results are better!!!
     """
-    
+    shapeStack_ob_org = np.shape(stack_ob)
+    stack_ob=np.append(stack_ob,np.delete(stack_ob,0,0), axis=0)
     shapeStack_ob = np.shape(stack_ob)
     
+    
     stack_obReshaped = np.reshape(stack_ob,[shapeStack_ob[0],shapeStack_ob[1]*shapeStack_ob[2]])
-    stack_obReshaped = medfilt(stack_obReshaped,(filter_size,1))
-    ob = np.reshape(stack_obReshaped, [shapeStack_ob[0], shapeStack_ob[1],shapeStack_ob[2]])
+    stack_obReshaped = wiener(stack_obReshaped,[3,1])
+    stack_obReshaped = np.split(stack_obReshaped,[-(shapeStack_ob_org[0]-1)],0)[0]
+
+
+    ob = np.reshape(stack_obReshaped, [shapeStack_ob_org[0], shapeStack_ob_org[1],shapeStack_ob_org[2]])
     
-    
+    shapeStack_im_org = np.shape(stack_im)
+    stack_im=np.append(stack_im,np.delete(stack_im,0,0), axis=0)
     shapeStack_im = np.shape(stack_im)
     
+    
     stack_imReshaped = np.reshape(stack_im,[shapeStack_im[0],shapeStack_im[1]*shapeStack_im[2]])
-    stack_imReshaped = medfilt(stack_imReshaped,(filter_size,1))
-    im = np.reshape(stack_imReshaped, [shapeStack_im[0], shapeStack_im[1],shapeStack_im[2]])
+    stack_imReshaped = wiener(stack_imReshaped,[3,1])
+    stack_imReshaped = np.split(stack_imReshaped,[-(shapeStack_im_org[0]-1)],0)[0]
+    im = np.reshape(stack_imReshaped, [shapeStack_im_org[0], shapeStack_im_org[1],shapeStack_im_org[2]])
     
     return im, ob
-    
-    
