@@ -8,11 +8,10 @@ Created on Tue Jan 17 10:13:09 2017
 import scipy
 import numpy as np
 
-def pixelWiseDPC(dpci,p2um=4,d1cm=1.94,lambdaAmstr=4.1):
+def pixelWiseDPC(dpci,p2um=4,d1cm=19.4,lambdaAmstr=4.1):
     """
     formula:
         d Φ / d x  =       (p2 / λ * d1) φ           
-          according to SI 
     
     Parameters
     ----------
@@ -25,8 +24,7 @@ def pixelWiseDPC(dpci,p2um=4,d1cm=1.94,lambdaAmstr=4.1):
         
     """
     
-    dphi_over_dxPixel = (p2um*1e-6)/(lambdaAmstr*1e-10*d1cm*1e-2)*dpci
-#    dphi_over_dxPixel = scipy.integrate.simps()
+    dphi_over_dxPixel = ((p2um*1e-3)/(lambdaAmstr*1e-7*d1cm))*dpci
 
     return dphi_over_dxPixel
 
@@ -46,7 +44,7 @@ def pixelWisePC(dpciUnit,pixelConversion=1/(9.2222e-3),p2um=4,d1cm=1.94,lambdaAm
     -----    
     """
     dphi_over_dxPixel = np.array([scipy.integrate.cumtrapz(line*pixelConversion,initial=0) for line in dpciUnit])
-    dphi_over_dxPixelREV = np.fliplr(np.array([scipy.integrate.cumtrapz(line*pixelConversion,initial=0) for line in np.fliplr(dpciUnit)]))
+    #dphi_over_dxPixelREV = np.fliplr(np.array([scipy.integrate.cumtrapz(line*pixelConversion,initial=0) for line in np.fliplr(dpciUnit)]))
 
-    return (np.abs(dphi_over_dxPixel)+np.abs(dphi_over_dxPixelREV))/4
+    return dphi_over_dxPixel#(np.abs(dphi_over_dxPixel)+np.abs(dphi_over_dxPixelREV))/4
 
